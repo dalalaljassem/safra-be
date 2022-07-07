@@ -1,34 +1,72 @@
-const bcrypt = require("bcrypt");
-const User = require("../../db/models/Users");
-const jwt = require("jsonwebtoken");
-const { jwtExp, jwtSecret } = require("../../key");
+const User = require('../../models/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { JWT_SECRET, JWT_EXPIRATION_MS } = require('../../config/keys');
 
-exports.signup = async (req, res) => {
+exports.signup = async (req, res, next) => {
+  const { password } = req.body;
+  const saltRounds = 10;
   try {
-    const hashPassword = await bcrypt.hash(req.body.password, 5);
-    req.body.password = hashPassword;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    req.body.password = hashedPassword;
     const newUser = await User.create(req.body);
-    const payload = {
-      _id: newUser._id,
-      username: newUser.username,
-      exp: Date.now() + jwtExp,
-    };
-    const token = jwt.sign(payload, jwtSecret);
+    const token = generateToken(newUser);
     res.status(201).json({ token });
   } catch (err) {
-    res.status(500).json(err.message);
+    next(err);
   }
 };
 
-exports.signin = async (req, res, next) => {
+exports.login = async (req, res, next) => {
   try {
+    const { user } = req;
     const payload = {
-      _id: req.user._id,
-      username: req.user.username,
-      exp: Date.now() + jwtExp,
+      id: user.id,
+      username: user.username,
+      image: user.image,
+      groups: user.groups,
+      budget: user.budget,
+      departDate: user.departDate,
+      returnDate: user.returnDate,
+      exp: Date.now() + JWT_EXPIRATION_MS,
     };
-    const token = jwt.sign(payload, jwtSecret);
-    res.status(201).json(token);
+    const token = jwt.sign(payload, JWT_SECRET);
+    res.status(201).json({ token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const generateToken = (user) => {
+  const payload = {
+    id: user.id,
+    username: user.username,
+    image: user.image,
+    groups: user.groups,
+    budget: user.budget,
+    departDate: user.departDate,
+    returnDate: user.returnDate,
+    exp: Date.now() + JWT_EXPIRATION_MS,
+  };
+  const token = jwt.sign(payload, JWT_SECRET);
+  return token;
+};
+
+exports.getUsers = async (req, res) => {
+  try {
+    // const users = await User.find().populate('groups');
+    const users = await User.find();
+
+    res.status(201).json(users);
+  } catch (err) {
+    res.status(500).json('Server Error');
+  }
+};
+
+exports.fetchUser = async (userId, next) => {
+  try {
+    const user = await User.findById(userId);
+    return user;
   } catch (err) {
     next(err);
   }
