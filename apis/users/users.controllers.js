@@ -1,7 +1,7 @@
-const User = require('../../models/User');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { JWT_SECRET, JWT_EXPIRATION_MS } = require('../../config/keys');
+const User = require("../../models/User");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET, JWT_EXPIRATION_MS } = require("../../config/keys");
 
 exports.signup = async (req, res, next) => {
   const { password } = req.body;
@@ -54,12 +54,12 @@ const generateToken = (user) => {
 
 exports.getUsers = async (req, res) => {
   try {
-    // const users = await User.find().populate('groups');
-    const users = await User.find();
+    const users = await User.find().populate("groups");
+    // const users = await User.find();
 
     res.status(201).json(users);
   } catch (err) {
-    res.status(500).json('Server Error');
+    res.status(500).json("Server Error");
   }
 };
 
