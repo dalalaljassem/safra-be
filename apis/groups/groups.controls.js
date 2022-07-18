@@ -2,11 +2,8 @@ const Group = require("../../models/Group");
 const User = require("../../models/User");
 
 exports.groupCreate = async (req, res) => {
-  console.log(
-    "🚀 ~ file: groups.controls.js ~ line 6 ~ exports.groupCreate= ~ req.user",
-    req
-  );
-  req.body.userId = req.userId._id;
+  req.body.admin = req.user._id;
+  req.body.users = [req.user._id];
 
   try {
     const newGroup = await Group.create(req.body);
@@ -49,6 +46,14 @@ exports.fetchGroup = async (req, res) => {
   try {
     const { groupId } = req.params;
     const foundGroup = await Group.findById(groupId);
+    console.log(
+      "🚀 ~ file: groups.controls.js ~ line 53 ~ exports.fetchGroup= ~ foundGroup",
+      foundGroup
+    );
+    console.log(
+      "🚀 ~ file: groups.controls.js ~ line 53 ~ exports.fetchGroup= ~ groupId",
+      groupId
+    );
     res.status(201).json(foundGroup);
   } catch (error) {
     return error;
@@ -58,7 +63,9 @@ exports.fetchGroup = async (req, res) => {
 //when fetching groups, we get the user object with each group
 exports.groupGet = async (req, res) => {
   try {
-    const groups = await Group.find().populate("userId");
+    //pass userId
+    let groups = await Group.find().populate("admin");
+    groups = await Group.find().populate("users");
 
     res.json(groups);
   } catch (error) {

@@ -54,7 +54,11 @@ const generateToken = (user) => {
 
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().populate("groups");
+    const users = await User.find().populate("groups", [
+      "title",
+      "image",
+      "_id",
+    ]);
     // const users = await User.find();
 
     res.status(201).json(users);
@@ -69,5 +73,20 @@ exports.fetchUser = async (userId, next) => {
     return user;
   } catch (err) {
     next(err);
+  }
+};
+
+exports.userUpdate = async (req, res) => {
+  try {
+    if (req.file) {
+      req.body.image = `/uploads/${req.file.filename}`;
+    }
+    const { userId } = req.params;
+    await User.findByIdAndUpdate(userId, req.body, {
+      new: true,
+    }); //if it breaks remove new:true..
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

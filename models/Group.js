@@ -7,10 +7,11 @@ const GroupSchema = new mongoose.Schema({
   finalDepartDate: Date,
   finalReturnDate: Date,
   finalActivities: [String],
-  userId: {
+  admin: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 module.exports = mongoose.model("Group", GroupSchema);
